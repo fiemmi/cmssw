@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 from FWCore.GuiBrowsers.ConfigToolBase import *
 
 from CommonTools.PileupAlgos.Puppi_cff      import puppi
+from CommonTools.PileupAlgos.ABCNet_cff      import abc
 from CommonTools.PileupAlgos.softKiller_cfi import softKiller
 
 from RecoJets.JetProducers.PFJetParameters_cfi         import PFJetParameters
@@ -277,7 +278,14 @@ class RecoJetAdder(object):
         # Skip if no PU Method or CS specified
         #
         if recoJetInfo.jetPUMethod in [ "", "cs" ]:
-          pass
+          #pass
+          print("I AM ADDING THE ABC PRODUCER TO THE PROCESS AND TASK")
+          self.addProcessAndTask(proc, pfCand, abc.clone(
+              candName = "packedPFCandidates",
+            )
+          )
+          print("DID I CORRECTLY ADD?")
+          self.prerequisites.append(pfCand)
         #
         # CHS
         #
@@ -348,13 +356,15 @@ class RecoJetAdder(object):
         )
         elif jet == "ak4pfabc": #add one elif to make sure to enter in a dedicated "ABC clustering block, without spoiling the rest
           print("pfCand for ABC jets:", pfCand)
+          self.addProcessAndTask(proc, "abc", abc.clone())
           self.addProcessAndTask(proc, jetCollection, ak4PFJets.clone(
-            src = pfCand,
+            src = "abc",
             #we want do do something like the following two lines (commented out for now)
             #applyWeight = True,
             #srcWeights = cms.InputTag("puppi") #this is going to be a edm::ValueMap<float> (mapping each pf candidate to an ABCNet weight), TBD
           )
         )
+          print("I AM IN THE ABC SECTION, DID I REACH HERE?")
         else:
           self.addProcessAndTask(proc, jetCollection, ak4PFJets.clone(
             src = pfCand,
@@ -397,8 +407,10 @@ class RecoJetAdder(object):
         JETCorrLevels,
         "None",
       )
+      print("jetCorrections: ", jetCorrections)
 
       postfix = "Recluster" if inputCollection == "" else ""
+      print("BEGIN OF ADD JET COLLECTION")
       addJetCollection(
         proc,
         labelName          = jetUpper,
@@ -415,6 +427,7 @@ class RecoJetAdder(object):
         genParticles       = cms.InputTag(self.gpLabel),
         jetCorrections     = jetCorrections,
       )
+      print("END OF ADD JET COLLECTION")
 
       #
       # Need to set this explicitly for PUPPI jets
@@ -438,6 +451,7 @@ class RecoJetAdder(object):
       # -  b-tagging discriminators  
       # 
       #=============================================
+      print("BEGIN OF UPDATE JET COLLECTION")
       updateJetCollection(
         proc,
         labelName          = jetUpper,
@@ -446,7 +460,7 @@ class RecoJetAdder(object):
         jetCorrections     = jetCorrections,
         btagDiscriminators = bTagDiscriminators,
       )
-
+      print("END OF UPDATE JET COLLECTION")
       recoJetInfo.patJetFinalCollection = "selectedUpdatedPatJets{}{}".format(jetUpper,"Final")
     else:
       recoJetInfo.patJetFinalCollection = inputCollection
