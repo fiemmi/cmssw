@@ -22,6 +22,7 @@
 #include "CommonTools/PileupAlgos/interface/PuppiCandidate.h"// for puppi candidates
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
+#include "PhysicsTools/TensorFlow/interface/TensorFlow.h" // to use TensorFlow
 
 #include <limits>
 #include <iostream>
