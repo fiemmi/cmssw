@@ -56,7 +56,7 @@ std::unordered_map<std::string, std::vector<float>> ABCNetMakeInputs::makeFeatur
     if (abs(aPF.pdgId()) == 11) fts["PFCandIsEle"].push_back(1.0); else fts["PFCandIsEle"].push_back(0.0); //f5
     if (abs(aPF.pdgId()) == 13) fts["PFCandIsMu"].push_back(1.0); else fts["PFCandIsMu"].push_back(0.0); //f6
     if (abs(aPF.pdgId()) == 211 || abs(aPF.pdgId()) == 2 || abs(aPF.pdgId()) == 1) fts["PFCandIsHad"].push_back(1.0); else fts["PFCandIsHad"].push_back(0.0); //f7
-    if (abs(aPF.pdgId()) == 130) fts["PFCandIsK"].push_back(1.0); else fts["PFCandIsK"].push_back(0.0); //f8
+    if (abs(aPF.pdgId()) == 130) fts["PFCandIsNeutralHad"].push_back(1.0); else fts["PFCandIsNeutralHad"].push_back(0.0); //f8
     if (abs(aPF.pdgId()) == 22) fts["PFCandIsPhoton"].push_back(1.0); else fts["PFCandIsPhoton"].push_back(0.0); //f9
     fts["PFCandNumHits"].push_back(aPF.numberOfHits()); //f14
     fts["PFCandNumLayersHit"].push_back(aPF.trackerLayersWithMeasurement()); //f15
