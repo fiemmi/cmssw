@@ -25,6 +25,8 @@
 #include "PhysicsTools/TensorFlow/interface/TensorFlow.h" // to use TensorFlow
 #include "FWCore/Framework/interface/stream/EDAnalyzer.h"
 
+#include "ABCNetMakeInputs.h"
+
 #include <limits>
 #include <iostream>
 #include <fstream>
@@ -32,6 +34,8 @@
 #include <numeric>
 #include <memory>
 #include <nlohmann/json.hpp>
+
+using namespace abcnet;
 
 struct ABCNetTFCache {
   ABCNetTFCache() : graphDef(nullptr) {}
@@ -103,6 +107,7 @@ void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
   edm::Handle<reco::CandidateView> PFCandidates;
   iEvent.getByToken(tokenPFCandidates_, PFCandidates);
   const reco::CandidateView *pfCol = PFCandidates.product();
+  auto features = ABCNetMakeInputs::makeFeatureMap(pfCol, false);
   //initialize container for ABCNet weights
   std::vector<float> weights;
   //throw random numbers in [0,1] as ABCNet weights for now
