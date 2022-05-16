@@ -34,20 +34,20 @@ std::unordered_map<std::string, std::vector<float>> ABCNetMakeInputs::makeFeatur
     PFCands.push_back(*lPack);
     Pts.push_back(lPack->pt());
     
-  } // end loop over PF candidates
+  }; // end loop over PF candidates
     
-    //zip the vectors
-    std::vector<std::pair<pat::PackedCandidate,float>> zipped_vec;
-    zip(PFCands, Pts, zipped_vec);
-    // Sort the vector of pairs
-    std::sort(std::begin(zipped_vec), std::end(zipped_vec), [&](const auto& a, const auto& b) { return a.second > b.second; });
-    // Write the sorted pairs back to the original vectors
-    unzip(zipped_vec, PFCands, Pts);
+  //zip the vectors
+  std::vector<std::pair<pat::PackedCandidate,float>> zipped_vec;
+  zip(PFCands, Pts, zipped_vec);
+  // Sort the vector of pairs
+  std::sort(std::begin(zipped_vec), std::end(zipped_vec), [&](const auto& a, const auto& b) { return a.second > b.second; });
+  // Write the sorted pairs back to the original vectors
+  unzip(zipped_vec, PFCands, Pts);
   
-    //fill feature map
-    std::unordered_map<std::string, std::vector<float>> fts;
-    for (auto const & aPF : PFCands) {
-      
+  //fill feature map
+  std::unordered_map<std::string, std::vector<float>> fts;
+  for (auto const & aPF : PFCands) {
+    
     fts["PFCandEta"].push_back(aPF.eta()); //f0
     fts["PFCandPhi"].push_back(aPF.phi()); //f1
     fts["PFCandLogPt"].push_back(log(aPF.pt())); //f2
@@ -77,7 +77,7 @@ std::unordered_map<std::string, std::vector<float>> ABCNetMakeInputs::makeFeatur
     }
     if (aPF.pdgId() == 130 || aPF.pdgId() == 1) fts["PFCandHCalFrac"].push_back(aPF.hcalFraction()); else if (aPF.isIsolatedChargedHadron()) fts["PFCandHCalFrac"].push_back(aPF.rawHcalFraction()); else fts["PFCandHCalFrac"].push_back(0.0); //f12
     
-    }
+  };
     
   return fts;
 
