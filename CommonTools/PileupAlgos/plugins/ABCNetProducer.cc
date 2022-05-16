@@ -108,6 +108,7 @@ void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
   iEvent.getByToken(tokenPFCandidates_, PFCandidates);
   const reco::CandidateView *pfCol = PFCandidates.product();
   auto features = ABCNetMakeInputs::makeFeatureMap(pfCol, false);
+  auto inputs = ABCNetMakeInputs::preprocess(features, false);
   //initialize container for ABCNet weights
   std::vector<float> weights;
   //throw random numbers in [0,1] as ABCNet weights for now
