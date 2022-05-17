@@ -37,6 +37,29 @@
 
 using namespace abcnet;
 
+// struct to hold preprocessing parameters
+struct PreprocessParams {
+  struct VarInfo {
+    VarInfo() {}
+    VarInfo(float upper_bound, float lower_bound, float norm_factor, float replace_nan_value)
+      : upper_bound(upper_bound),
+        lower_bound(lower_bound),
+	norm_factor(norm_factor),
+	replace_nan_value(replace_nan_value) {}
+    float upper_bound = 100000;
+    float lower_bound = -100000;
+    float norm_factor = 1;
+    float replace_nan_value = 0;
+  };
+
+  std::vector<std::string> var_names;
+  std::unordered_map<std::string, VarInfo> var_info_map;
+
+  VarInfo info(const std::string &name) const { return var_info_map.at(name); }
+
+};
+
+
 struct ABCNetTFCache {
   ABCNetTFCache() : graphDef(nullptr) {}
   std::atomic<tensorflow::GraphDef*> graphDef;
@@ -65,6 +88,9 @@ private:
   void produce(edm::Event &, const edm::EventSetup &) override;
   // tokens
   edm::EDGetTokenT<reco::CandidateView> tokenPFCandidates_;
+  std::vector<std::string> input_names_; //names of the input features. Ordering matters!
+  std::unordered_map<std::string, PreprocessParams> prep_info_map_;  //preprocessing info for each input feature
+
 };
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +102,19 @@ ABCNetProducer::ABCNetProducer(const edm::ParameterSet& iConfig, const ABCNetTFC
   tokenPFCandidates_(consumes<reco::CandidateView>(iConfig.getParameter<edm::InputTag>("candName")))
 {
   std::ifstream ifs(iConfig.getParameter<edm::FileInPath>("preprocess_json").fullPath());
-
+  nlohmann::json js = nlohmann::json::parse(ifs);
+  js.at("input_names").get_to(input_names_); //store names of input features from JSON inside input_names_
+  const auto &var_info_pset = js.at("var_info"); //get the var_info block from JSON
+  for (const auto & input_name : input_names_) {
+    const auto &var_pset = var_info_pset.at(input_name);
+    double upper_bound = var_pset.at("upper_bound");
+    double lower_bound = var_pset.at("lower_bound");
+    double norm_factor = var_pset.at("norm_factor");
+    double replace_nan_value = var_pset.at("replace_nan_value");
+    auto &prep_params = prep_info_map_[input_name];
+    prep_params.var_info_map[input_name] = PreprocessParams::VarInfo(upper_bound, lower_bound, norm_factor, replace_nan_value);
+  }
+  
   // Produce a ValueMap of floats linking each PF candidate with its ABCNet weight
   produces<edm::ValueMap<float> > ();
   produces<pat::PackedCandidateCollection>();
