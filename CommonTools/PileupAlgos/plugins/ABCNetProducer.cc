@@ -86,10 +86,14 @@ public:
 private:
   std::unique_ptr< PackedOutputCollection > fPackedPuppiCandidates;
   void produce(edm::Event &, const edm::EventSetup &) override;
+  std::vector<float> minmax_scale(const std::vector<float> &input, float upper_bound = 100000, float lower_bound = 100000, float norm_factor = 1, float pad_value = 0, float replace_nan_value = 0);
+  void preprocess(std::unordered_map<std::string, std::vector<float>> &taginfo);
   // tokens
   edm::EDGetTokenT<reco::CandidateView> tokenPFCandidates_;
   std::vector<std::string> input_names_; //names of the input features. Ordering matters!
   std::unordered_map<std::string, PreprocessParams> prep_info_map_;  //preprocessing info for each input feature
+
+  constexpr static unsigned max_num_PFCandidates = 4000;
 
 };
 
@@ -142,13 +146,34 @@ void ABCNetProducer::globalEndJob(const ABCNetTFCache* cache) {
   }
 };
 
+std::vector<float> ABCNetProducer::minmax_scale(const std::vector<float> &input, float upper_bound, float lower_bound, float norm_factor, float pad_value, float replace_nan_value) {
+  unsigned target_length = std::clamp((unsigned)input.size(), max_num_PFCandidates, max_num_PFCandidates);
+  std::vector<float> out(target_length, pad_value);
+  for (unsigned i = 0; i < input.size() && i < target_length; ++i) {
+    auto val = std::isfinite(input[i]) ? input[i] : replace_nan_value;
+    val = std::isnan(input[i]) ? replace_nan_value : input[i];
+    val = (input[i]>upper_bound) ? upper_bound : input[i];
+    val = (input[i]<lower_bound) ? lower_bound : input[i];
+    out[i] = val/norm_factor; //need to check this value
+  }
+  return out;
+};
+
+void ABCNetProducer::preprocess(std::unordered_map<std::string, std::vector<float>> & featureMap) {
+
+  for (auto & element : featureMap) { //do not declare 'auto const', want to manipulate the element
+    element.second.resize(max_num_PFCandidates, 0.0); //truncate or zero-pad feature vectors
+  }
+
+};
+
 void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Get PFCandidate Collection
   edm::Handle<reco::CandidateView> PFCandidates;
   iEvent.getByToken(tokenPFCandidates_, PFCandidates);
   const reco::CandidateView *pfCol = PFCandidates.product();
   auto features = ABCNetMakeInputs::makeFeatureMap(pfCol, false);
-  auto inputs = ABCNetMakeInputs::preprocess(features, false);
+  ABCNetProducer::preprocess(features);
   //initialize container for ABCNet weights
   std::vector<float> weights;
   //throw random numbers in [0,1] as ABCNet weights for now
