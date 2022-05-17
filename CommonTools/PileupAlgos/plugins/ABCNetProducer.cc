@@ -94,6 +94,8 @@ private:
   edm::EDGetTokenT<reco::CandidateView> tokenPFCandidates_;
   std::vector<std::string> input_names_; //names of the input features. Ordering matters!
   std::unordered_map<std::string, PreprocessParams> prep_info_map_;  //preprocessing info for each input feature
+  //session for TF evaluation
+  tensorflow::Session* session_;
 
   constexpr static unsigned max_num_PFCandidates = 4000;
 
@@ -105,7 +107,8 @@ private:
 
 // constructors
 ABCNetProducer::ABCNetProducer(const edm::ParameterSet& iConfig, const ABCNetTFCache* cache):
-  tokenPFCandidates_(consumes<reco::CandidateView>(iConfig.getParameter<edm::InputTag>("candName")))
+  tokenPFCandidates_(consumes<reco::CandidateView>(iConfig.getParameter<edm::InputTag>("candName"))),
+  session_(nullptr)
 {
   std::ifstream ifs(iConfig.getParameter<edm::FileInPath>("preprocess_json").fullPath());
   nlohmann::json js = nlohmann::json::parse(ifs);
@@ -121,6 +124,8 @@ ABCNetProducer::ABCNetProducer(const edm::ParameterSet& iConfig, const ABCNetTFC
     auto &prep_params = prep_info_map_[input_name];
     prep_params.var_info_map[input_name] = PreprocessParams::VarInfo(upper_bound, lower_bound, norm_factor, replace_nan_value, pad_value);
   }
+  //create the session using the meta graph from the cache
+  session_ = tensorflow::createSession(cache->graphDef);
   
   // Produce a ValueMap of floats linking each PF candidate with its ABCNet weight
   produces<edm::ValueMap<float> > ();
@@ -175,6 +180,18 @@ void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
   const reco::CandidateView *pfCol = PFCandidates.product();
   auto features = ABCNetMakeInputs::makeFeatureMap(pfCol, false);
   ABCNetProducer::preprocess(features);
+
+  //fill the input tensor
+  tensorflow::Tensor inputs (tensorflow::DT_FLOAT, { 1, 4000, 19 });
+  inputs.flat<float>().setZero();
+  for (int i = 0; i < 4000; i++) { //may need to find better solution than hard-coding 4000
+    for (int j = 0; j < 19; j++) { //may need to find better solution than hard-coding 19
+      std::cout << input_names_.at(j) << std::endl;
+      std::cout << float(features[input_names_.at(j)].at(i)) << std::endl;
+      inputs.tensor<float,3>()(0,i,j) = float(features[input_names_.at(j)].at(i));
+    }
+  }
+
   //initialize container for ABCNet weights
   std::vector<float> weights;
   //throw random numbers in [0,1] as ABCNet weights for now
