@@ -134,6 +134,6 @@
 	    "lower_bound": -5,
 	    "norm_factor": 5,
 	    "replace_nan_value": 0
-	},
-    },
+	}
+    }
 }
