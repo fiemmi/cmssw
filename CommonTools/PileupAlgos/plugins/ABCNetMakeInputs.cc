@@ -83,12 +83,3 @@ std::unordered_map<std::string, std::vector<float>> ABCNetMakeInputs::makeFeatur
 
 };
 
-std::unordered_map<std::string, std::vector<float>> ABCNetMakeInputs::preprocess( std::unordered_map<std::string, std::vector<float>> & featureMap, bool debug) {
-
-  for (auto & element : featureMap) { //do not declare 'auto const', want to manipulate the element
-    element.second.resize(max_num_PFCandidates, 0.0); //truncate or zero-pad feature vectors
-  }
-
-  return featureMap;
-
-};
