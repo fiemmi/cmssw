@@ -566,6 +566,7 @@ def SavePatJets(proc, jetName, payload, patJetFinalColl, jetTablePrefix, jetTabl
       getattr(proc,finalJetsForTable)
     )
   )
+    getattr(proc, "patJetsAK8PFPUPPIRecluster").userData.userFloats.src = cms.VInputTag("AK8PFPUPPICollectionSoftDropMass")
   #
   # Define the jet table sequences
   #
