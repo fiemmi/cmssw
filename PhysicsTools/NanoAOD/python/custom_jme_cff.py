@@ -524,7 +524,8 @@ def SavePatJets(proc, jetName, payload, patJetFinalColl, jetTablePrefix, jetTabl
     )
   )
   getattr(proc,jetTable).variables.pt.precision=10
-
+  if "AK8PFPUPPI" in jetName:
+    setattr(getattr(proc, jetTable).variables, "msoftdrop", Var("userFloat('AK8PFPUPPICollectionSoftDropMass')", float, doc='Softdrop mass', precision=10))
   #
   # Save MC-only jet variables in table
   #
