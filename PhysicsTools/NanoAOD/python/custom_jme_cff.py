@@ -555,6 +555,17 @@ def SavePatJets(proc, jetName, payload, patJetFinalColl, jetTablePrefix, jetTabl
     )
   )
 
+  if "AK8PFPUPPI" in jetSequenceName:
+    setattr(proc, jetSequenceName, cms.Sequence(
+      getattr(proc, "AK8PFPUPPICollectionConstituents")+
+      getattr(proc, "AK8PFPUPPISDCollection")+
+      getattr(proc, "AK8PFPUPPICollectionSoftDropMass")+
+      getattr(proc,jetCorrFactors)+
+      getattr(proc,srcJets)+
+      getattr(proc,srcJetsWithUserData)+
+      getattr(proc,finalJetsForTable)
+    )
+  )
   #
   # Define the jet table sequences
   #
