@@ -14,6 +14,9 @@ from RecoJets.JetProducers.ak4GenJets_cfi  import ak4GenJets
 from RecoJets.JetProducers.ak4PFJets_cfi   import ak4PFJets, ak4PFJetsCHS, ak4PFJetsPuppi, ak4PFJetsSK, ak4PFJetsCS 
 from RecoJets.JetProducers.ak4CaloJets_cfi import ak4CaloJets 
 
+from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHSSoftDrop
+from RecoJets.JetProducers.ak8PFJetsPuppi_groomingValueMaps_cfi import ak8PFJetsPuppiSoftDropMass
+
 from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cfi import updatedPatJets
 from PhysicsTools.PatAlgos.recoLayer0.jetCorrFactors_cfi  import patJetCorrFactors
 from PhysicsTools.PatAlgos.mcMatchLayer0.jetFlavourId_cff import patJetFlavourAssociation
@@ -335,6 +338,28 @@ class RecoJetAdder(object):
               srcWeights = pfCand
             )
           )
+          ############################################
+          ### DO THE FOLLOWING ONLY FOR ak8pfpuppi ###
+          ############################################
+          if "ak8" in jet:
+            #get the constituents of AK8PFPUPPICollection
+            self.addProcessAndTask(proc, "PFJetsConstituents", cms.EDProducer("MiniAODJetConstituentSelector", 
+                src = cms.InputTag(jetCollection),
+                cut = cms.string("")
+              )
+            )
+            #use the constituents to cluster a new collection with SD mass
+            self.addProcessAndTask(proc, "AK8PFPUPPISDCollection", ak8PFJetsCHSSoftDrop.clone(
+                src = cms.InputTag("PFJetsConstituents"),
+                rParam = 0.8,
+              ) 
+            )
+            #perform matching between original (AK8PFPUPPICollection) and newly-clustered (AK8PFPUPPISDCollection) collections
+            self.addProcessAndTask(proc, "SoftDropMass", ak8PFJetsPuppiSoftDropMass.clone(
+                src = cms.InputTag(jetCollection),
+                matched = cms.InputTag("AK8PUPPISDCollection")
+              )
+            )
         elif recoJetInfo.jetPUMethod == "sk":
           self.addProcessAndTask(proc, pfCand, ak4PFJetsSK.clone(
               src = pfCand,
