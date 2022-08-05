@@ -343,21 +343,21 @@ class RecoJetAdder(object):
           ############################################
           if "ak8" in jet:
             #get the constituents of AK8PFPUPPICollection
-            self.addProcessAndTask(proc, "PFJetsConstituents", cms.EDProducer("MiniAODJetConstituentSelector", 
+            self.addProcessAndTask(proc, jetCollection+"Constituents", cms.EDProducer("MiniAODJetConstituentSelector", 
                 src = cms.InputTag(jetCollection),
-                cut = cms.string("")
+                cut = cms.string("") #what is this parameter used for?
               )
             )
             #use the constituents to cluster a new collection with SD mass
             self.addProcessAndTask(proc, "AK8PFPUPPISDCollection", ak8PFJetsCHSSoftDrop.clone(
-                src = cms.InputTag("PFJetsConstituents"),
+                src = cms.InputTag(jetCollection+"Constituents"+":constituents"), #use the 'constituents' product of MiniAODJetConstituentSelector
                 rParam = 0.8,
               ) 
             )
             #perform matching between original (AK8PFPUPPICollection) and newly-clustered (AK8PFPUPPISDCollection) collections
-            self.addProcessAndTask(proc, "SoftDropMass", ak8PFJetsPuppiSoftDropMass.clone(
+            self.addProcessAndTask(proc, jetCollection+"SoftDropMass", ak8PFJetsPuppiSoftDropMass.clone(
                 src = cms.InputTag(jetCollection),
-                matched = cms.InputTag("AK8PUPPISDCollection")
+                matched = cms.InputTag("AK8PFPUPPISDCollection")
               )
             )
         elif recoJetInfo.jetPUMethod == "sk":
