@@ -66,6 +66,7 @@ private:
   std::string output_tensor_name_;
   int n_pf_cands_;
   int n_feats_;
+  int n_knns_;
   bool debug_;
   
   edm::EDPutTokenT<edm::ValueMap<float>> ABCNetOut_;

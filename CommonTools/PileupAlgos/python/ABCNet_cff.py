@@ -9,5 +9,6 @@ abc = cms.EDProducer("ABCNetProducer",
                      output_tensor_name = cms.string("Identity"),
                      n_pf_cands = cms.int32(4000),
                      n_feats = cms.int32(19),
+                     n_knns = cms.int32(20),
                      debug = cms.bool(False)
 )

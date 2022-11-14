@@ -51,6 +51,7 @@ ABCNetProducer::ABCNetProducer(const edm::ParameterSet& iConfig, const ABCNetTFC
   output_tensor_name_(iConfig.getParameter<std::string>("output_tensor_name")),
   n_pf_cands_(iConfig.getParameter<int>("n_pf_cands")),
   n_feats_(iConfig.getParameter<int>("n_feats")),
+  n_knns_(iConfig.getParameter<int>("n_knns")),
   debug_(iConfig.getParameter<bool>("debug"))
 {
   //parse data from preprocessing JSON file
@@ -97,6 +98,7 @@ void ABCNetProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptio
   desc.add<std::string>("output_tensor_name", "Identity");
   desc.add<int>("n_pf_cands", 4000);
   desc.add<int>("n_feats", 19);
+  desc.add<int>("n_knns", 20);
   desc.add<bool>("debug", false);
 
   descriptions.add("abc", desc);
@@ -183,7 +185,7 @@ void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
   
   //make feature map and KNNs, preprocess features
   std::vector<size_t> indices; 
-  auto [features, KNNs] = ABCNetMakeInputs::makeFeatureMap(pfCol, indices, debug_);
+  auto [features, KNNs] = ABCNetMakeInputs::makeFeatureMap(pfCol, indices, n_pf_cands_, n_knns_, debug_);
   ABCNetProducer::preprocess(features, debug_);
   
   //fill the input tensors
@@ -194,11 +196,11 @@ void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
       inputs.tensor<float,3>()(0,i,j) = float(features[input_names_.at(j)].at(i)); //looks suboptimal; is there way of filling the tensor avoiding nested loops?
     }
   }
-  tensorflow::Tensor knn_indices (tensorflow::DT_FLOAT, { 1, n_pf_cands_, 20 });
+  tensorflow::Tensor knn_indices (tensorflow::DT_FLOAT, { 1, n_pf_cands_, n_knns_ });
   knn_indices.flat<float>().setZero();
   for (int i = 0; i < n_pf_cands_; i++) {
-    for (int j = 0; j < 20; j++){
-      knn_indices.tensor<float,3>()(0,i,j) = float(KNNs.at(i*20+j));
+    for (int j = 0; j < n_knns_; j++){
+      knn_indices.tensor<float,3>()(0,i,j) = float(KNNs.at(i*n_knns_+j));
     }
   }
   if (debug_) {
@@ -210,7 +212,7 @@ void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
     }
     std::cout << "\n";
     std::cout << "KNN indices: \n";
-    for (int j = 0; j < 20; j++) {
+    for (int j = 0; j < n_knns_; j++) {
       std::cout << knn_indices.tensor<float,3>()(0, i, j) << ", ";
     }
     std::cout << "\n";
