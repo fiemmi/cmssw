@@ -99,7 +99,9 @@ std::tuple< std::unordered_map<std::string, std::vector<float>>, std::vector<flo
       fts["PFCandQuality"].push_back(0.0);
     }
     if (aPF.pdgId() == 130 || aPF.pdgId() == 1) fts["PFCandHCalFrac"].push_back(aPF.hcalFraction()); else if (aPF.isIsolatedChargedHadron()) fts["PFCandHCalFrac"].push_back(aPF.rawHcalFraction()); else fts["PFCandHCalFrac"].push_back(0.0); //f12
-    
+
+    //make sure you don't store more than n_pf_cands (4000 in Run2), as the network is expecting exactly n_pf_cands. If you have less, 0-pad later, if you have more, cut them away now
+    if ((int)(fts["PFCandEta"].size()) == n_pf_cands) break;
   }
   if (debug) {
     std::cout << "*** NOW CHECKING THE SORTING OF PF CANDIDATES ***" << std::endl;
