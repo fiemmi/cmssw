@@ -109,8 +109,6 @@ std::tuple< std::unordered_map<std::string, std::vector<float>>, std::vector<flo
     else std::cout << "No issues with the sorting of PF candidates detected" << std::endl;
   }
   
-  for (int i = 0; i < (n_pf_cands-static_cast<int>(fts["PFCandEta"].size())); i++) points.push_back({{float(0.0), float(0.0)}});
-
   // method to gather kNN indices
   auto knn = [&](size_t num_neighbors, size_t max_support_size, size_t max_query_size = 0) {
     if (max_query_size == 0)
@@ -131,7 +129,7 @@ std::tuple< std::unordered_map<std::string, std::vector<float>>, std::vector<flo
   std::vector<float> KNNs = knn(n_knns+1, points.size(), points.size()); //gather n_knns+1 k-nearest neighbors. This vector has size (n_particles * (n_knns+1))
   //std::cout << "size of KNNs is " << KNNs.size() << std::endl;
   //for each particle, the first KNN is the particle itself. The training was done excluding this first KNN. Exclude it during evaluation as well
-  for (int i = n_pf_cands-1; i >= 0; i--) KNNs.erase(KNNs.begin()+i*(n_knns+1)); //remove elements starting from the end
+  for (int i = points.size()-1; i >= 0; i--) KNNs.erase(KNNs.begin()+i*(n_knns+1)); //remove elements starting from the end
   return {fts,KNNs};
 
 };
