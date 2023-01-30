@@ -91,7 +91,7 @@ ABCNetProducer::~ABCNetProducer() {
 void ABCNetProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("candName", edm::InputTag("packedPFCandidates"));
-  desc.add<edm::FileInPath>("graph_path", edm::FileInPath("CommonTools/PileupAlgos/data/AttentionBasedPileupRejectionModel_Run2_KDTree.pb"));
+  desc.add<edm::FileInPath>("graph_path", edm::FileInPath("CommonTools/PileupAlgos/data/AttentionBasedPileupRejectionModel_Run2_KDTree_dyn0pad_test.pb"));
   desc.add<edm::FileInPath>("preprocess_json", edm::FileInPath("CommonTools/PileupAlgos/data/preprocessing_info.json"));
   desc.add<std::string>("input_tensor_name_1", "input_1");
   desc.add<std::string>("input_tensor_name_2", "input_2");
@@ -127,9 +127,8 @@ std::vector<float> ABCNetProducer::minmax_scale(const std::vector<float> &input,
 						float pad_value,
 						float replace_nan_value
 						) {
-  unsigned target_length = std::clamp((unsigned)input.size(), (unsigned)n_pf_cands_, (unsigned)n_pf_cands_);
-  std::vector<float> out(target_length, pad_value);
-  for (unsigned i = 0; i < input.size() && i < target_length; ++i) {
+  std::vector<float> out(input.size(), pad_value);
+  for (unsigned i = 0; i < input.size(); ++i) {
     //first of all, check if input is inf/nan and replace it if needed
     auto val = std::isfinite(input[i]) ? input[i] : replace_nan_value;
     val = std::isnan(input[i]) ? replace_nan_value : input[i];
@@ -189,16 +188,16 @@ void ABCNetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
   ABCNetProducer::preprocess(features, debug_);
   
   //fill the input tensors
-  tensorflow::Tensor inputs (tensorflow::DT_FLOAT, { 1, n_pf_cands_, n_feats_ });
+  tensorflow::Tensor inputs (tensorflow::DT_FLOAT, { 1, (int)features["PFCandEta"].size(), n_feats_ });
   inputs.flat<float>().setZero();
   for (int j = 0; j < n_feats_; j++) {
-    for (int i = 0; i < n_pf_cands_; i++) {
+    for (int i = 0; i < (int)features["PFCandEta"].size(); i++) {
       inputs.tensor<float,3>()(0,i,j) = float(features[input_names_.at(j)].at(i)); //looks suboptimal; is there way of filling the tensor avoiding nested loops?
     }
   }
-  tensorflow::Tensor knn_indices (tensorflow::DT_FLOAT, { 1, n_pf_cands_, n_knns_ });
+  tensorflow::Tensor knn_indices (tensorflow::DT_FLOAT, { 1, (int)features["PFCandEta"].size(), n_knns_ });
   knn_indices.flat<float>().setZero();
-  for (int i = 0; i < n_pf_cands_; i++) {
+  for (int i = 0; i < (int)features["PFCandEta"].size(); i++) {
     for (int j = 0; j < n_knns_; j++){
       knn_indices.tensor<float,3>()(0,i,j) = float(KNNs.at(i*n_knns_+j));
     }
