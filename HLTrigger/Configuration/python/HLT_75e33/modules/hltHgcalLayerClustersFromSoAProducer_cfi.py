@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from HeterogeneousCore.AlpakaCore.functions import makeSerialClone
 
 hltHgCalLayerClustersFromSoAProducer = cms.EDProducer("HGCalLayerClustersFromSoAProducer",
     detector = cms.string('EE'),
@@ -9,4 +10,9 @@ hltHgCalLayerClustersFromSoAProducer = cms.EDProducer("HGCalLayerClustersFromSoA
     timeClname = cms.string('timeLayerCluster')
 )
 
-
+#FIemmi: serial clone of LayerClustersFromSoAProducer
+hltHgCalLayerClustersFromSoAProducer = makeSerialClone(hltHgCalLayerClustersFromSoAProducer
+                                                       #feed upstream serial modules in
+                                                       hgcalRecHitsLayerClustersSoA = "hltHgcalSoARecHitsLayerClustersProducerSerialSync",
+                                                       hgcalRecHitsSoA = "hltHgcalSoARecHitsProducerSerialSync"
+)

@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from HeterogeneousCore.AlpakaCore.functions import makeSerialClone
 
 ceh_layerClusters = [
     "hltHgcalLayerClustersHSci", 
@@ -18,9 +19,13 @@ hltMergeLayerClusters = cms.EDProducer("MergeClusterProducer",
     time_layerclusters = cms.VInputTag("hltHgcalLayerClustersEE:timeLayerCluster", *ceh_time_layerClusters),
 )
 
+#FIemmi: serial clone of hltMergeLayerClusters
+hltMergeLayerClustersSerialSync = makeSerialClone(hltMergeLayerClusters)
+
 # Process modifiers: ticl_barrel and alpaka
 from Configuration.ProcessModifiers.alpaka_cff import alpaka
 from Configuration.ProcessModifiers.ticl_barrel_cff import ticl_barrel
+from Configuration.ProcessModifiers.alpakaValidationHLT_cff import alpakaValidationHLT #FIemmi: import alpakaValidationHLT as well
 
 (alpaka & ~ticl_barrel).toModify(hltMergeLayerClusters,
     layerClusters = ["hltHgCalLayerClustersFromSoAProducer", *ceh_layerClusters],
@@ -35,4 +40,10 @@ from Configuration.ProcessModifiers.ticl_barrel_cff import ticl_barrel
 (ticl_barrel & alpaka).toModify(hltMergeLayerClusters,
     layerClusters = ["hltHgCalLayerClustersFromSoAProducer", *ceh_layerClusters, *barrel_layerClusters],
     time_layerclusters = ["hltHgCalLayerClustersFromSoAProducer:timeLayerCluster", *ceh_time_layerClusters, *barrel_time_layerClusters]
+)
+
+#FIemmi: modify the SerialSync producer according to our needs (feed SerialSync inputs in)
+alpakaValidationHLT.toModify(hltMergeLayerClustersSerialSync,
+   layerClusters = ["hltHgCalLayerClustersFromSoAProducerSerialSync", *ceh_layerClusters],
+   time_layerclusters = ["hltHgCalLayerClustersFromSoAProducerSerialSync:timeLayerCluster", *ceh_time_layerClusters]
 )
