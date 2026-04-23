@@ -20,7 +20,10 @@ hltMergeLayerClusters = cms.EDProducer("MergeClusterProducer",
 )
 
 #FIemmi: serial clone of hltMergeLayerClusters
-hltMergeLayerClustersSerialSync = makeSerialClone(hltMergeLayerClusters)
+hltMergeLayerClustersSerialSync = cms.EDProducer("MergeClusterProducer",
+    layerClusters = cms.VInputTag("hltHgcalLayerClustersEE", *ceh_layerClusters),
+    time_layerclusters = cms.VInputTag("hltHgcalLayerClustersEE:timeLayerCluster", *ceh_time_layerClusters),
+)
 
 # Process modifiers: ticl_barrel and alpaka
 from Configuration.ProcessModifiers.alpaka_cff import alpaka

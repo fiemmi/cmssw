@@ -14,6 +14,6 @@ hltHgcalSoALayerClustersProducer = cms.EDProducer("HGCalSoALayerClustersProducer
 #FIemmi: serial clone of SoALayerClusterProducer
 hltHgcalSoALayerClustersProducerSerialSync = makeSerialClone(hltHgcalSoALayerClustersProducer,
                                                              #feed the upstream serial modules in
-                                                             hgcalRecHitsLayerClustersSoA = "hltHgcalSoARecHitsLayerClustersProducerSerialSync"
+                                                             hgcalRecHitsLayerClustersSoA = "hltHgcalSoARecHitsLayerClustersProducerSerialSync",
                                                              hgcalRecHitsSoA = "hltHgcalSoARecHitsProducerSerialSync"
 )

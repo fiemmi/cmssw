@@ -10,9 +10,12 @@ hltHgCalLayerClustersFromSoAProducer = cms.EDProducer("HGCalLayerClustersFromSoA
     timeClname = cms.string('timeLayerCluster')
 )
 
-#FIemmi: serial clone of LayerClustersFromSoAProducer
-hltHgCalLayerClustersFromSoAProducer = makeSerialClone(hltHgCalLayerClustersFromSoAProducer
-                                                       #feed upstream serial modules in
-                                                       hgcalRecHitsLayerClustersSoA = "hltHgcalSoARecHitsLayerClustersProducerSerialSync",
-                                                       hgcalRecHitsSoA = "hltHgcalSoARecHitsProducerSerialSync"
+#FIemmi: serial version of LayerClustersFromSoAProducer (takes serial inputs)
+hltHgCalLayerClustersFromSoAProducerSerialSync = cms.EDProducer("HGCalLayerClustersFromSoAProducer",
+    detector = cms.string('EE'),
+    hgcalRecHitsLayerClustersSoA = cms.InputTag("hltHgcalSoARecHitsLayerClustersProducerSerialSync"),
+    hgcalRecHitsSoA = cms.InputTag("hltHgcalSoARecHitsProducerSerialSync"),
+    nHitsTime = cms.uint32(3),
+    src = cms.InputTag("hltHgcalSoALayerClustersProducerSerialSync"),
+    timeClname = cms.string('timeLayerCluster')
 )

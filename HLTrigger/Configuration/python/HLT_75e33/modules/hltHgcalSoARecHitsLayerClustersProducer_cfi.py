@@ -13,5 +13,5 @@ hltHgcalSoARecHitsLayerClustersProducer = cms.EDProducer("HGCalSoARecHitsLayerCl
 
 #FIemmi: serial clone of SoARecHitsLayerClustersProducer
 hltHgcalSoARecHitsLayerClustersProducerSerialSync = makeSerialClone(hltHgcalSoARecHitsLayerClustersProducer,
-                                                                    hgcalrecHitsSoA = "hltHgcalSoARecHitsProducerSerialSync"
+                                                                    hgcalRecHitsSoA = "hltHgcalSoARecHitsProducerSerialSync"
 )

@@ -50,6 +50,7 @@ _HLTTICLLocalRecoSequence_heterogeneousGPUCPU = cms.Sequence(
         hltHgcalSoARecHitsLayerClustersProducer+
         hltHgcalSoALayerClustersProducer+
         hltHgCalLayerClustersFromSoAProducer+
+        hltHgcalLayerClustersEE+
         hltHgcalLayerClustersHSci+
         hltHgcalLayerClustersHSi+
         hltMergeLayerClusters+
@@ -60,6 +61,7 @@ _HLTTICLLocalRecoSequence_heterogeneousGPUCPU = cms.Sequence(
         hltHgcalSoARecHitsLayerClustersProducerSerialSync+
         hltHgcalSoALayerClustersProducerSerialSync+
         hltHgCalLayerClustersFromSoAProducerSerialSync+
+        hltHgcalLayerClustersEE+
         hltHgcalLayerClustersHSci+
         hltHgcalLayerClustersHSi+
         hltMergeLayerClustersSerialSync)
