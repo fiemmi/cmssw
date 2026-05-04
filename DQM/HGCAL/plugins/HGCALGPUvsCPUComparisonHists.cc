@@ -95,7 +95,7 @@ void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::
 
   //look for GPU and CPU LayerClusters whose seeds match
   //map LC seeds to LC indices for the reference collection
-  std::unordered_map<uint32_t, unsigned> seedToIdx;
+  std::unordered_map<uint32_t,std::pair<unsigned,bool>> seedToIdx; //map seed of reference LC to index and wether or not it matches a monitored LC
   seedToIdx.reserve(referenceLayerClusters->size());
   for (unsigned idx = 0; idx < referenceLayerClusters->size(); idx++) {
     auto seed = referenceLayerClusters->at(idx).seed();
@@ -104,14 +104,15 @@ void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::
             << "Duplicate seed in reference collection.";
         return;
     }
-    seedToIdx[seed] = idx;
+    seedToIdx[seed] = {idx,false}; //initialze all reference LCs as unmatched
   }
   //look for matches in the monitored collection and, if any, fill histograms
   for (unsigned i = 0; i < monitoredLayerClusters->size(); i++) {
     const auto& monitored = monitoredLayerClusters->at(i);
     auto it = seedToIdx.find(monitored.seed());
-    if (it != seedToIdx.end()) {
-      const auto& reference = referenceLayerClusters->at(it->second);
+    if (it != seedToIdx.end() && it->second.second == false) {
+      it->second.second = true; //establish a match
+      const auto& reference = referenceLayerClusters->at(it->second.first);
       
       hLayerCluster_x->Fill(monitored.x() - reference.x());
       hLayerCluster_y->Fill(monitored.y() - reference.y());
@@ -128,6 +129,11 @@ void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::
       hLayerCluster2D_phi->Fill(reference.phi(), monitored.phi());
       hLayerCluster2D_e->Fill(reference.energy(), monitored.energy());
       hLayerCluster2D_nRecHits->Fill(reference.size(), monitored.size());
+    }
+    else {
+      edm::LogWarning("HGCALGPUvsCPUComparisonHists")
+	  << "No match or duplicate match to reference collection found.";
+      return;
     }
   }
 }
