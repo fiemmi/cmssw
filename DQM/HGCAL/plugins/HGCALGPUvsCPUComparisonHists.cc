@@ -94,19 +94,24 @@ void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::
   const std::vector<reco::CaloCluster>* referenceLayerClusters = referenceLayerClusters_.product();
 
   //look for GPU and CPU LayerClusters whose seeds match
-  for (unsigned int i = 0; i < monitoredLayerClusters->size(); i++) {
-    unsigned monitoredIdx = 0, referenceIdx = 0; 
-    int matchCounter = 0;
-    for (unsigned int j = 0; j < referenceLayerClusters->size(); j++) {
-      if (monitoredLayerClusters->at(i).seed() == referenceLayerClusters->at(j).seed()) {
-	monitoredIdx = i;
-	referenceIdx = j;
-	matchCounter++;
-      }
+  //map LC seeds to LC indices for the reference collection
+  std::unordered_map<uint32_t, unsigned> seedToIdx;
+  seedToIdx.reserve(referenceLayerClusters->size());
+  for (unsigned idx = 0; idx < referenceLayerClusters->size(); idx++) {
+    auto seed = referenceLayerClusters->at(idx).seed();
+    if (seedToIdx.find(seed) != seedToIdx.end()) {
+        edm::LogWarning("HGCALGPUvsCPUComparisonHists")
+            << "Duplicate seed in reference collection.";
+        return;
     }
-    if (matchCounter == 1) {
-      const auto& monitored = monitoredLayerClusters->at(monitoredIdx);
-      const auto& reference = referenceLayerClusters->at(referenceIdx);
+    seedToIdx[seed] = idx;
+  }
+  //look for matches in the monitored collection and, if any, fill histograms
+  for (unsigned i = 0; i < monitoredLayerClusters->size(); i++) {
+    const auto& monitored = monitoredLayerClusters->at(i);
+    auto it = seedToIdx.find(monitored.seed());
+    if (it != seedToIdx.end()) {
+      const auto& reference = referenceLayerClusters->at(it->second);
       
       hLayerCluster_x->Fill(monitored.x() - reference.x());
       hLayerCluster_y->Fill(monitored.y() - reference.y());
@@ -123,11 +128,7 @@ void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::
       hLayerCluster2D_phi->Fill(reference.phi(), monitored.phi());
       hLayerCluster2D_e->Fill(reference.energy(), monitored.energy());
       hLayerCluster2D_nRecHits->Fill(reference.size(), monitored.size());
-      }
-      else {
-	edm::LogWarning("HGCALGPUvsCPUComparisonHists") << "Found duplicate match. Won't fill histogram for this event.";
-	return;
-      }
+    }
   }
 }
 
