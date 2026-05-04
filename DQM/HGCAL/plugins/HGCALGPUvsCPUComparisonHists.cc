@@ -105,21 +105,24 @@ void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::
       }
     }
     if (matchCounter == 1) {
-      hLayerCluster_x->Fill(monitoredLayerClusters->at(monitoredIdx).x() - referenceLayerClusters->at(referenceIdx).x());
-      hLayerCluster_y->Fill(monitoredLayerClusters->at(monitoredIdx).y() - referenceLayerClusters->at(referenceIdx).y());
-      hLayerCluster_z->Fill(monitoredLayerClusters->at(monitoredIdx).z() - referenceLayerClusters->at(referenceIdx).z());
-      hLayerCluster_eta->Fill(monitoredLayerClusters->at(monitoredIdx).eta() - referenceLayerClusters->at(referenceIdx).eta());
-      hLayerCluster_phi->Fill(monitoredLayerClusters->at(monitoredIdx).phi() - referenceLayerClusters->at(referenceIdx).phi());
-      hLayerCluster_e->Fill(monitoredLayerClusters->at(monitoredIdx).energy() - referenceLayerClusters->at(referenceIdx).energy());
-      hLayerCluster_nRecHits->Fill(monitoredLayerClusters->at(monitoredIdx).size() - referenceLayerClusters->at(referenceIdx).size());
+      const auto& monitored = monitoredLayerClusters->at(monitoredIdx);
+      const auto& reference = referenceLayerClusters->at(referenceIdx);
+      
+      hLayerCluster_x->Fill(monitored.x() - reference.x());
+      hLayerCluster_y->Fill(monitored.y() - reference.y());
+      hLayerCluster_z->Fill(monitored.z() - reference.z());
+      hLayerCluster_eta->Fill(monitored.eta() - reference.eta());
+      hLayerCluster_phi->Fill(monitored.phi() - reference.phi());
+      hLayerCluster_e->Fill(monitored.energy() - reference.energy());
+      hLayerCluster_nRecHits->Fill(monitored.size() - reference.size());
 
-      hLayerCluster2D_x->Fill(referenceLayerClusters->at(referenceIdx).x(), monitoredLayerClusters->at(monitoredIdx).x());
-      hLayerCluster2D_y->Fill(referenceLayerClusters->at(referenceIdx).y(), monitoredLayerClusters->at(monitoredIdx).y());
-      hLayerCluster2D_z->Fill(referenceLayerClusters->at(referenceIdx).z(), monitoredLayerClusters->at(monitoredIdx).z());
-      hLayerCluster2D_eta->Fill(referenceLayerClusters->at(referenceIdx).eta(), monitoredLayerClusters->at(monitoredIdx).eta());
-      hLayerCluster2D_phi->Fill(referenceLayerClusters->at(referenceIdx).phi(), monitoredLayerClusters->at(monitoredIdx).phi());
-      hLayerCluster2D_e->Fill(referenceLayerClusters->at(referenceIdx).energy(), monitoredLayerClusters->at(monitoredIdx).energy());
-      hLayerCluster2D_nRecHits->Fill(referenceLayerClusters->at(referenceIdx).size(), monitoredLayerClusters->at(monitoredIdx).size());
+      hLayerCluster2D_x->Fill(reference.x(), monitored.x());
+      hLayerCluster2D_y->Fill(reference.y(), monitored.y());
+      hLayerCluster2D_z->Fill(reference.z(), monitored.z());
+      hLayerCluster2D_eta->Fill(reference.eta(), monitored.eta());
+      hLayerCluster2D_phi->Fill(reference.phi(), monitored.phi());
+      hLayerCluster2D_e->Fill(reference.energy(), monitored.energy());
+      hLayerCluster2D_nRecHits->Fill(reference.size(), monitored.size());
       }
       else {
 	edm::LogWarning("HGCALGPUvsCPUComparisonHists") << "Found duplicate match. Won't fill histogram for this event.";
