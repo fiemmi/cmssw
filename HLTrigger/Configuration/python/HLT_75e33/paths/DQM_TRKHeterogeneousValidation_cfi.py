@@ -3,7 +3,6 @@ import FWCore.ParameterSet.Config as cms
 from ..sequences.HLTBeginSequence_cfi import *
 from ..sequences.HLTTrackingSequence_cfi import *
 from ..sequences.HLTDQMTrackReconstruction_cfi import *
-from ..sequences.HLTDQMHGCALReconstruction_cfi import *
 
 hltBackend = cms.EDProducer( "AlpakaBackendProducer@alpaka"
 )
@@ -20,5 +19,4 @@ DQM_TRKHeterogeneousValidation = cms.Path(
     + HLTTrackingSequence
     + HLTTrackingSequenceSerialSync
     + HLTDQMTrackReconstruction
-    + HLTDQMHGCALReconstruction
 )
