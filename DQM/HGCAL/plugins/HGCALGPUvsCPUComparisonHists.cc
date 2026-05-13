@@ -87,18 +87,15 @@ void HGCALGPUvsCPUComparisonHists::bookHistograms(DQMStore::IBooker& iBooker, ed
 void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //Get monitored (GPU) and reference (CPU) LayerCluster collections
-  edm::Handle<reco::CaloClusterCollection> monitoredLayerClusters_, referenceLayerClusters_;
-  iEvent.getByToken(tokenMonitoredLayerClusters_, monitoredLayerClusters_);
-  iEvent.getByToken(tokenReferenceLayerClusters_, referenceLayerClusters_);
-  const std::vector<reco::CaloCluster>* monitoredLayerClusters = monitoredLayerClusters_.product();
-  const std::vector<reco::CaloCluster>* referenceLayerClusters = referenceLayerClusters_.product();
+  const std::vector<reco::CaloCluster> monitoredLayerClusters = iEvent.get(tokenMonitoredLayerClusters_);
+  const std::vector<reco::CaloCluster> referenceLayerClusters = iEvent.get(tokenReferenceLayerClusters_);
 
   //look for GPU and CPU LayerClusters whose seeds match
   //map LC seeds to LC indices for the reference collection
   std::unordered_map<uint32_t,std::pair<unsigned,bool>> seedToIdx; //map seed of reference LC to index and wether or not it matches a monitored LC
-  seedToIdx.reserve(referenceLayerClusters->size());
-  for (unsigned idx = 0; idx < referenceLayerClusters->size(); idx++) {
-    auto seed = referenceLayerClusters->at(idx).seed();
+  seedToIdx.reserve(referenceLayerClusters.size());
+  for (unsigned idx = 0; idx < referenceLayerClusters.size(); idx++) {
+    auto seed = referenceLayerClusters[idx].seed();
     if (seedToIdx.find(seed) != seedToIdx.end()) {
         edm::LogWarning("HGCALGPUvsCPUComparisonHists")
             << "Duplicate seed in reference collection.";
@@ -107,12 +104,12 @@ void HGCALGPUvsCPUComparisonHists::analyze(const edm::Event& iEvent, const edm::
     seedToIdx[seed] = {idx,false}; //initialze all reference LCs as unmatched
   }
   //look for matches in the monitored collection and, if any, fill histograms
-  for (unsigned i = 0; i < monitoredLayerClusters->size(); i++) {
-    const auto& monitored = monitoredLayerClusters->at(i);
+  for (unsigned i = 0; i < monitoredLayerClusters.size(); i++) {
+    const auto& monitored = monitoredLayerClusters[i];
     auto it = seedToIdx.find(monitored.seed());
     if (it != seedToIdx.end() && it->second.second == false) {
       it->second.second = true; //establish a match
-      const auto& reference = referenceLayerClusters->at(it->second.first);
+      const auto& reference = referenceLayerClusters[it->second.first];
       
       hLayerCluster_x->Fill(monitored.x() - reference.x());
       hLayerCluster_y->Fill(monitored.y() - reference.y());
